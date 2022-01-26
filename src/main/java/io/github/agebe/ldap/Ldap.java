@@ -92,11 +92,14 @@ public class Ldap {
 
     @Parameter(names="--ldap-listen", description="host:port of to listen for ldap connections",
         converter = HostAndPortConverter.class)
-    public HostAndPort ldapListen = HostAndPort.fromString("localhost").withDefaultPort(DEFAULT_LDAP_PORT);
+    public HostAndPort ldapListen = HostAndPort.fromString("0.0.0.0").withDefaultPort(DEFAULT_LDAP_PORT);
 
     @Parameter(names="--ldaps-listen", description="host:port of to listen for ldaps connections",
         converter = HostAndPortConverter.class)
-    public HostAndPort ldapsListen = HostAndPort.fromString("localhost").withDefaultPort(DEFAULT_LDAPS_PORT);
+    public HostAndPort ldapsListen = HostAndPort.fromString("0.0.0.0").withDefaultPort(DEFAULT_LDAPS_PORT);
+
+    @Parameter(names="--read-only", description="only allow operations ABANDON, BIND, COMPARE, SEARCH and UNBIND")
+    public boolean readOnly;
 
   }
 
@@ -133,13 +136,16 @@ public class Ldap {
     if(options.disableSchema) {
       config.setSchema(null);
     }
-    config.setAllowedOperationTypes(
-        OperationType.ABANDON,
-        OperationType.BIND,
-        OperationType.COMPARE,
-        OperationType.SEARCH,
-        OperationType.UNBIND);
+    if(options.readOnly) {
+      config.setAllowedOperationTypes(
+          OperationType.ABANDON,
+          OperationType.BIND,
+          OperationType.COMPARE,
+          OperationType.SEARCH,
+          OperationType.UNBIND);
+    }
     if(options.authenticatedRequired) {
+      // TODO probably need to add the other operations too
       config.setAuthenticationRequiredOperationTypes(OperationType.COMPARE, OperationType.SEARCH);
     }
     setupListeners(config, options);
